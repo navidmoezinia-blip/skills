@@ -26,7 +26,7 @@ day**. It runs unattended on the user's own machine.
 | Attribute | Value |
 |---|---|
 | Who | PGY1 Family Medicine resident at **UTMB (Galveston, TX)** |
-| Commute anchor | UTMB main campus, **301 University Blvd, Galveston, TX 77555** *(confirm)* |
+| Commute anchor | UTMB main campus, **301 University Blvd, Galveston, TX 77555** (confirmed) |
 | Budget | **≤ $1,200/mo if utilities included**, OR **≤ $1,000/mo if utilities not included** |
 | Must-have | **In-unit washer/dryer** (hard filter — exclude listings without it) |
 | Strong preference | **No carpet** (hard floors) |
@@ -183,31 +183,46 @@ Keep it skimmable — this is a twice-daily glance, not a report.
 
 ---
 
-## 9. Open questions to confirm before/while building
+## 9. Defaults + open items
 
-1. **Exact UTMB campus address** for the commute anchor (Galveston main campus
-   assumed). Any secondary site (League City / Clear Lake / Angleton)?
-2. **Search radius** — Galveston island only, or include mainland (Texas City,
-   La Marque, League City) if commute is still reasonable?
-3. **Maps API** available for accurate commute, or use LLM estimate?
-4. **Email address & send times** — `navidmoezinia@gmail.com`, 7:30am / 6:00pm
-   local? Confirm timezone (Central).
-5. **Furnished vs unfurnished** — any preference?
-6. **Lease length** — residency is ~3 yr; any min/max lease preference?
-7. How to handle **"utilities unknown"** listings — surface for manual review,
-   or auto-apply the conservative ≤$1000 rule?
+These are resolved with sensible **defaults so Codex can build without blocking**.
+The user can override any of them; only the last group truly needs user input.
+
+**Decided / defaulted:**
+1. **Commute anchor:** UTMB **main campus, 301 University Blvd, Galveston, TX
+   77555** (confirmed by user).
+2. **Search radius (default):** Galveston Island first; also include nearby
+   mainland (Texas City, La Marque) when commute stays ≲25 min. Rank by commute.
+3. **Commute computation (default):** LLM estimate from neighborhood (Galveston
+   is small, so this is adequate). Upgrade to a maps API only if a key is given.
+4. **Email + send times (default):** to `navidmoezinia@gmail.com`, **7:30am and
+   6:00pm America/Chicago (Central)**.
+5. **Furnished (default):** no preference — include both.
+6. **Lease length (default):** no hard filter; residency is ~3 yr, so note any
+   sub-12-month / short-term leases as a minor con but don't exclude.
+7. **"Utilities unknown" listings (default):** keep and **surface for manual
+   review** (flag `utilities: "unknown"`); do not hard-drop.
+
+**Needs the user (not blocking — can start without):**
+- Confirm the Gmail send mechanism on the user's machine (app password / OAuth)
+  and that those two send times suit their schedule.
+- Whether to add a maps API key for exact commute times.
 
 ---
 
-## 10. Suggested task split (to avoid hitting any one tool's limits)
+## 10. Build ownership
 
-- **Claude (done here):** this brief + the schema, rubric, and prompt logic.
-  Best positioned to also write `scrape.py` (the judgment-heavy Playwright part)
-  and `enrich.py` (the LLM prompt) if you want — those are the fragile bits.
-- **Codex:** scaffold the project, implement `filter / diff / rank / render /
-  send`, the Jinja email template, cron/launchd setup, and the README. Mostly
-  mechanical given this spec.
-- **Abacus:** environment setup, dependency pinning, and any maps-API glue.
+**Codex builds the whole pipeline** from this brief (user's chosen split).
+Claude's contribution is this brief + the live recon (§12) that de-risked the
+two failure modes Codex would otherwise hit blind: the mandatory login and the
+datacenter-IP CAPTCHA wall. Implement strictly to §12's architecture — a
+**one-time headed login on the user's machine** with a **persistent profile**,
+then headless twice-daily runs.
+
+The probe scripts in `apartment-hunt/recon/` are a working starting reference:
+- `recon.mjs` — proves the logged-out wall + the `ignoreHTTPSErrors` need.
+- `login_probe.mjs` / `inspect_login.mjs` — the login flow + current FB
+  selectors (`input[name="email"]`, `input[name="pass"]`, submit via Enter).
 
 ---
 
@@ -252,3 +267,37 @@ container. Results:
 > Security note: the dedicated account's password was shared in chat during
 > setup. Since it's a throwaway account that's low-risk, but rotate it once the
 > machine-side login is working if you want it clean.
+
+---
+
+## 13. Kickoff prompt for Codex
+
+Paste this to Codex, with this `BRIEF.md` (and ideally the `recon/` scripts)
+attached:
+
+> Build a self-updating Facebook Marketplace apartment-hunt directory per the
+> attached `BRIEF.md`. Read the whole brief; it has the search profile, the
+> per-listing schema (incl. derived fields: total upfront cost, specials,
+> utilities, commute-to-UTMB, and a bougie /10 rating with the §5 rubric), the
+> email format, and — critically — §12, which documents live recon: Marketplace
+> requires login, and a headless login from a server IP hits a reCAPTCHA, so the
+> scraper MUST run on my machine with a persistent Playwright profile and a
+> one-time **headed** login (I clear 2FA/CAPTCHA as a human once), then headless
+> twice-daily runs reuse the saved session.
+>
+> Deliverables:
+> 1. A runnable project (Python or Node — your call; recon used Playwright/Node).
+> 2. `scrape` (persistent-profile login + Galveston property-rentals search +
+>    listing extraction), `filter` (hard rules: in-unit W/D required; budget
+>    rule = ≤$1200 if utilities included else ≤$1000), `enrich` (one batched LLM
+>    call for the derived fields), `diff` (new-since-last-run + price drops via a
+>    JSON state file), `rank`, `render` (skimmable HTML email), `send` (Gmail).
+> 3. Scheduling via cron/launchd at 7:30am & 6:00pm America/Chicago.
+> 4. A README: how to do the one-time headed login, set the LLM + Gmail
+>    credentials, and install the schedule.
+> 5. Defensive scraping: retries, clear logging, and "session expired" detection
+>    that's surfaced in the email footer.
+>
+> Use the §9 defaults wherever the brief leaves a choice. Ask me only about the
+> Gmail send mechanism (app password vs OAuth) and whether I want a maps API key
+> for exact commute times.
