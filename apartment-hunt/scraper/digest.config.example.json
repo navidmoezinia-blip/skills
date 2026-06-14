@@ -1,0 +1,43 @@
+{
+  "savedSearchUrl": "https://www.facebook.com/marketplace/galveston/propertyrentals",
+
+  "apify": {
+    "actorId": "REPLACE_WITH_ACTOR_ID",
+    "token": "",
+    "resultsLimit": 50
+  },
+
+  "briefMaxListings": 5,
+  "freshListingsOnly": true,
+  "freshListingHours": 24,
+  "onlyNewListings": true,
+  "stateFile": "data/seen-listings.json",
+
+  "criteria": {
+    "includeAny": [
+      "in unit",
+      "in-unit",
+      "washer and dryer",
+      "washer/dryer",
+      "w/d in unit",
+      "laundry in unit"
+    ],
+    "includeAll": [],
+    "excludeAny": ["carpet"],
+    "minPrice": null,
+    "maxPrice": 1200
+  },
+
+  "budget": {
+    "withUtilitiesMax": 1200,
+    "withoutUtilitiesMax": 1000,
+    "utilitiesIncludedPhrases": [
+      "utilities included",
+      "utils included",
+      "all bills paid",
+      "includes utilities",
+      "water included",
+      "electric included"
+    ]
+  }
+}

@@ -1,4 +1,33 @@
-# Hardened scraper — what changed & how to run
+# Apartment hunt — scraper & digest
+
+## ▶ Current direction: Apify + email digest (no collection)
+
+The Facebook scraping is being moved to an **Apify actor** (their cloud +
+residential proxies handle login/anti-bot), and the **"add to collection"
+feature is dropped** — the deliverable is the twice-daily **email digest**.
+
+That means the actor-agnostic core lives in:
+- `src/filtering.py` — pure logic: negation-aware keyword matching, the
+  conditional budget rule, dedup/state, utilities detection.
+- `src/digest.py` — reads an Apify results JSON (file or stdin), normalizes it,
+  filters, drops already-seen listings (surfacing price drops), ranks, and
+  writes a brief. **No browser, no FB login.**
+- `digest.config.example.json` — config for the digest path.
+- `sample-apify-results.json` — a fixture so it runs today:
+  ```
+  python src/digest.py sample-apify-results.json
+  ```
+
+`normalize_apify()` in `digest.py` maps Apify fields → our shape; it tries the
+common field names but **must be confirmed against your actual actor's output**.
+
+The Playwright files below (`run.py`, `setup_login.py`, `check_login.py`) are
+the older direct-scrape path — now **superseded by Apify**, kept only as a
+no-Apify fallback.
+
+---
+
+# Hardened scraper (legacy direct-scrape path)
 
 This is the reviewed/fixed version of the Codex scraper. Drop these files over
 your local project (`src/run.py`, `src/setup_login.py`, `src/check_login.py`,

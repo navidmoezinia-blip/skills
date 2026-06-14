@@ -1,0 +1,48 @@
+[
+  {
+    "id": "1001",
+    "title": "Cozy 1BR near UTMB — in-unit washer/dryer, no carpet",
+    "price": "$1,150",
+    "location": {"city": "Galveston", "state": "TX"},
+    "url": "https://www.facebook.com/marketplace/item/1001/",
+    "image": "https://example.com/1.jpg",
+    "description": "Renovated studio-style 1 bed, ~520 sqft. In-unit washer and dryer, luxury vinyl plank floors (no carpet). Utilities included. 5 min from the seawall.",
+    "creationTime": "2026-06-14T01:10:00Z"
+  },
+  {
+    "id": "1002",
+    "title": "Spacious 2BR house with big yard",
+    "price": 1450,
+    "location": "Texas City, TX",
+    "url": "https://www.facebook.com/marketplace/item/1002/",
+    "description": "2 bed 2 bath, washer/dryer in unit. Tenant pays all utilities. Wall to wall carpet throughout.",
+    "creationTime": "2026-06-13T20:00:00Z"
+  },
+  {
+    "id": "1003",
+    "title": "Studio on the Strand",
+    "price": "$980",
+    "location": {"city": "Galveston", "state": "TX"},
+    "url": "https://www.facebook.com/marketplace/item/1003/",
+    "description": "Small studio ~450 sqft, hardwood floors, no carpet. Washer and dryer in unit. Tenant pays electric; water included.",
+    "creationTime": "2026-06-14T00:30:00Z"
+  },
+  {
+    "id": "1004",
+    "title": "Room for rent, shared laundry",
+    "price": 700,
+    "location": "Galveston, TX",
+    "url": "https://www.facebook.com/marketplace/item/1004/",
+    "description": "Private room, shared kitchen. Coin laundry on site. No in unit washer.",
+    "creationTime": "2026-06-14T00:05:00Z"
+  },
+  {
+    "id": "1005",
+    "title": "Bright 1BR, utilities included",
+    "price": "$1,195",
+    "location": {"city": "Galveston", "state": "TX"},
+    "url": "https://www.facebook.com/marketplace/item/1005/",
+    "description": "1 bed ~600 sqft. In-unit washer/dryer. Tile floors, no carpet. Utilities included in rent.",
+    "creationTime": "2026-06-13T23:00:00Z"
+  }
+]
