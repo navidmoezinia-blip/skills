@@ -221,3 +221,34 @@ Keep it skimmable — this is a twice-daily glance, not a report.
   machine so the FB session and residential IP stay stable.
 - Derived fields (`bougie`, `total_upfront`) are **estimates** — always label
   them as such so the user verifies before committing money.
+
+---
+
+## 12. Recon findings (2026-06-14)
+
+Live validation was attempted from the (ephemeral, datacenter-IP) build
+container. Results:
+
+- **Logged-out Marketplace is fully gated.** `/marketplace/galveston/property
+  rentals` 302-redirects to `/login`; zero listings are visible without a
+  session. A login is mandatory.
+- **Playwright drives FB fine through the env proxy** (needs
+  `ignoreHTTPSErrors: true` because the network policy does TLS interception).
+- **Headless login from a datacenter IP gets a reCAPTCHA.** The dedicated
+  account's password was accepted, but FB immediately served a reCAPTCHA
+  "I'm not a robot" challenge at the 2FA step. We will NOT auto-solve CAPTCHAs
+  (ToS / access-control circumvention). This confirms the cloud container
+  cannot host the scrape.
+
+### Consequence for the build (locks in the architecture)
+- Run on the **user's own machine** with a **persistent browser profile**
+  (`launchPersistentContext(userDataDir=...)`), and do the **first login
+  headed/visible** so the user clears any 2FA + CAPTCHA *as a human, once*.
+  Playwright then reuses the saved cookies for all subsequent **headless**
+  twice-daily runs — no re-login, no CAPTCHA, on a residential IP.
+- The scraper must detect "session expired / re-auth needed" and surface it in
+  the email footer so the user knows to re-run the one-time headed login.
+
+> Security note: the dedicated account's password was shared in chat during
+> setup. Since it's a throwaway account that's low-risk, but rotate it once the
+> machine-side login is working if you want it clean.
