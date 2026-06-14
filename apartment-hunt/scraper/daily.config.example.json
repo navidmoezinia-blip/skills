@@ -22,11 +22,11 @@
   "budget": {
     "withUtilitiesMax": 1200,
     "withoutUtilitiesMax": 1000,
-    "utilitiesIncludedPhrases": [
-      "utilities included", "utils included", "all bills paid",
-      "includes utilities", "water included", "electric included"
-    ]
+    "utilitiesIncludedPhrases": ["utilities included", "utils included", "all bills paid", "includes utilities", "water included", "electric included"],
+    "utilitiesExcludedPhrases": ["tenant pays", "plus utilities", "+ utilities", "utilities not included", "excludes utilities"]
   },
+
+  "_howSourcesArrive": "Each source can use ANY ONE of: 'file' (a JSON file your connector writes), 'url' (an endpoint returning JSON), or 'apify' (run an actor). Sources not yet wired just no-op, so a partial run still emails.",
 
   "sources": [
     {
@@ -34,35 +34,15 @@
       "type": "facebook",
       "max": 5,
       "requireKeywords": true,
+      "file": "data/incoming/facebook.json",
       "apify": {
-        "actorId": "REPLACE_WITH_FB_MARKETPLACE_ACTOR",
-        "input": {
-          "startUrls": [
-            { "url": "https://www.facebook.com/marketplace/galveston/propertyrentals?maxPrice=1200&sortBy=creation_time_descend&daysSinceListed=1" }
-          ],
-          "maxItems": 40
-        }
+        "actorId": "REPLACE_WITH_FB_ACTOR_OR_USE_FILE",
+        "input": { "startUrls": [ { "url": "https://www.facebook.com/marketplace/galveston/propertyrentals?maxPrice=1200&sortBy=creation_time_descend&daysSinceListed=1" } ], "maxItems": 40 }
       }
     },
-    {
-      "name": "Apartments.com",
-      "type": "apartments",
-      "max": 2,
-      "requireKeywords": false,
-      "apify": {
-        "actorId": "REPLACE_WITH_APARTMENTS_ACTOR",
-        "input": { "location": "Galveston, TX", "maxPrice": 1200, "maxItems": 25 }
-      }
-    },
-    {
-      "name": "Zillow",
-      "type": "zillow",
-      "max": 2,
-      "requireKeywords": false,
-      "apify": {
-        "actorId": "REPLACE_WITH_ZILLOW_ACTOR",
-        "input": { "searchUrls": [ { "url": "https://www.zillow.com/galveston-tx/rentals/" } ], "maxItems": 25 }
-      }
-    }
+    { "name": "Apartments.com", "type": "apartments",    "max": 2, "requireKeywords": false, "file": "data/incoming/apartments.json" },
+    { "name": "Zillow",         "type": "zillow",        "max": 2, "requireKeywords": false, "file": "data/incoming/zillow.json" },
+    { "name": "Apartment List", "type": "apartmentlist", "max": 2, "requireKeywords": false, "file": "data/incoming/apartmentlist.json" },
+    { "name": "Trulia / HotPads", "type": "trulia",      "max": 2, "requireKeywords": false, "file": "data/incoming/trulia.json" }
   ]
 }

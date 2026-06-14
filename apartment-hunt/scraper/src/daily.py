@@ -106,15 +106,31 @@ def main() -> int:
 # Fetch + filter
 # --------------------------------------------------------------------------- #
 def get_records(source: dict, token: str) -> list[dict]:
-    if source.get("file"):  # local JSON for testing
-        data = json.loads(Path(source["file"]).read_text(encoding="utf-8"))
-        if isinstance(data, dict):
-            data = data.get("items") or data.get("results") or [data]
-        return [r for r in data if isinstance(r, dict)]
+    """A source can arrive three ways — whichever your connector produces:
+    - "file":  a JSON file the connector writes (e.g. data/incoming/zillow.json)
+    - "url":   an HTTP endpoint returning JSON
+    - "apify": run an Apify actor directly
+    Unconfigured sources no-op (empty), so partial readiness still emails a brief.
+    """
+    if source.get("file"):
+        path = Path(source["file"])
+        if not path.exists():
+            return []  # connector hasn't dropped output yet -> no-op
+        return unwrap(json.loads(path.read_text(encoding="utf-8")))
+    if source.get("url"):
+        import urllib.request
+        with urllib.request.urlopen(source["url"], timeout=source.get("timeout", 60)) as resp:
+            return unwrap(json.loads(resp.read().decode("utf-8")))
     apify = source.get("apify")
     if apify and apify.get("actorId") and not str(apify["actorId"]).startswith("REPLACE"):
         return fetch_apify.run_actor(apify["actorId"], token, apify.get("input"), apify.get("timeout", 300))
-    return []  # not configured yet -> no-op (lets you add sources incrementally)
+    return []
+
+
+def unwrap(data) -> list[dict]:
+    if isinstance(data, dict):
+        data = data.get("items") or data.get("results") or data.get("data") or [data]
+    return [r for r in data if isinstance(r, dict)]
 
 
 def passes_filters(text: str, listing: dict, source: dict, config: dict) -> bool:
