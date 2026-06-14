@@ -14,7 +14,7 @@
   "criteria": {
     "includeAny": ["in unit", "in-unit", "washer and dryer", "washer/dryer", "w/d in unit", "laundry in unit"],
     "includeAll": [],
-    "excludeAny": ["carpet"],
+    "excludeAny": ["carpet", "hookups", "hookup", "dryer connection", "washer connection"],
     "minPrice": null,
     "maxPrice": 1200
   },
@@ -36,8 +36,9 @@
       "requireKeywords": true,
       "apify": {
         "actorId": "apify/facebook-marketplace-scraper",
+        "_note": "Location MUST be set by lat/long; the city slug is ignored and returns the proxy's location. 29.3013,-94.7977 = Galveston.",
         "input": {
-          "startUrls": [ { "url": "https://www.facebook.com/marketplace/galveston/propertyrentals" } ],
+          "startUrls": [ { "url": "https://www.facebook.com/marketplace/category/propertyrentals?latitude=29.3013&longitude=-94.7977&radius=16&maxPrice=1200&sortBy=creation_time_descend" } ],
           "resultsLimit": 40,
           "includeListingDetails": true
         }

@@ -22,7 +22,10 @@ from sources import normalize_facebook
 
 
 DEFAULT_ACTOR = "apify/facebook-marketplace-scraper"
-DEFAULT_URL = "https://www.facebook.com/marketplace/galveston/propertyrentals"
+# Location must be pinned by lat/long — the city slug is ignored (returns the
+# proxy's location). 29.3013,-94.7977 = Galveston, TX.
+DEFAULT_URL = ("https://www.facebook.com/marketplace/category/propertyrentals"
+               "?latitude=29.3013&longitude=-94.7977&radius=16&maxPrice=1200&sortBy=creation_time_descend")
 OUT_PATH = Path("data/incoming/facebook.json")
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", "config.json"))
 EXAMPLE_CONFIG_PATH = Path("daily.config.example.json")

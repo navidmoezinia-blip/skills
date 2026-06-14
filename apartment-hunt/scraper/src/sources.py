@@ -66,8 +66,10 @@ def parse_photo(value) -> str | None:
     if isinstance(value, str):
         return value
     if isinstance(value, dict):
+        if value.get("photo_image_url"):
+            return value["photo_image_url"]
         img = value.get("image") if isinstance(value.get("image"), dict) else None
-        return pick(img or value, "uri", "url", "src")
+        return pick(img or value, "uri", "url", "src", "photo_image_url")
     return None
 
 
@@ -91,11 +93,12 @@ def _base(record: dict, source: str, url: str) -> dict:
 def normalize_facebook(record: dict) -> dict:
     """Maps the official apify/facebook-marketplace-scraper output (with
     includeListingDetails enabled). Falls back to other field names too."""
-    url = pick(record, "listingUrl", "url", "facebookUrl", "link") or ""
+    url = pick(record, "itemUrl", "listingUrl", "url", "link") or ""
     out = _base(record, "facebook", url)
     out["id"] = str(pick(record, "id", "listingId", "facebookId", "itemId") or listing_id_from_url(url) or "")
-    out["title"] = clean_text(pick(record, "marketplace_listing_title", "title", "name")) or "Marketplace listing"
-    out["price"] = parse_price(pick(record, "listing_price", "price", "listingPrice", "amount", "formattedPrice"))
+    title = clean_text(pick(record, "listingTitle", "marketplace_listing_title", "title", "name"))
+    out["title"] = title.replace("+", " ") if title else "Marketplace listing"
+    out["price"] = parse_price(pick(record, "listingPrice", "listing_price", "price", "amount", "formattedPrice"))
     out["location"] = clean_text(parse_location(pick(record, "location", "address", "city", "place")))
     out["image"] = parse_photo(pick(record, "primary_listing_photo", "image", "imageUrl", "primaryImage", "photo")) or out["image"]
     out["description"] = clean_text(
