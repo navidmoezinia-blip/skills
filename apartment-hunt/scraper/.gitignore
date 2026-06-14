@@ -1,0 +1,14 @@
+# Secrets / live session — NEVER commit these
+auth/
+config.json
+.env
+
+# Run artifacts
+data/
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
