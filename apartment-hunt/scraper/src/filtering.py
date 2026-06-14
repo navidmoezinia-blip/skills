@@ -71,26 +71,45 @@ def matches_criteria(text: str, price: int | None, criteria: dict) -> dict:
     return {"ok": True, "reason": None}
 
 
-def utilities_included(text: str, budget: dict | None) -> bool:
-    phrases = (budget or {}).get(
-        "utilitiesIncludedPhrases",
-        ["utilities included", "utils included", "all bills paid",
-         "includes utilities", "water included", "electric included"],
-    )
+DEFAULT_UTIL_INCLUDED = [
+    "utilities included", "utils included", "all bills paid",
+    "includes utilities", "water included", "electric included",
+]
+DEFAULT_UTIL_EXCLUDED = [
+    "tenant pays", "plus utilities", "+ utilities", "utilities not included",
+    "excludes utilities", "pay your own", "not included",
+]
+
+
+def utilities_status(text: str, budget: dict | None) -> str:
+    """Return 'included' / 'excluded' / 'unknown'."""
     low = text.lower()
-    return any(p.lower() in low for p in phrases)
+    included = (budget or {}).get("utilitiesIncludedPhrases", DEFAULT_UTIL_INCLUDED)
+    excluded = (budget or {}).get("utilitiesExcludedPhrases", DEFAULT_UTIL_EXCLUDED)
+    if any(p.lower() in low for p in included):
+        return "included"
+    if any(p.lower() in low for p in excluded):
+        return "excluded"
+    return "unknown"
+
+
+def utilities_included(text: str, budget: dict | None) -> bool:
+    return utilities_status(text, budget) == "included"
 
 
 def budget_check(text: str, price: int | None, budget: dict | None) -> tuple[bool, str | None]:
-    """<= withUtilitiesMax if utilities look included, else <= withoutUtilitiesMax.
-    Unknown price is not dropped."""
+    """<= withUtilitiesMax if utilities included; <= withoutUtilitiesMax if
+    explicitly excluded; if unknown, use the higher cap (don't hard-drop).
+    Unknown price is never dropped."""
     if not budget or price is None:
         return True, None
-    included = utilities_included(text, budget)
-    cap = budget.get("withUtilitiesMax", 1200) if included else budget.get("withoutUtilitiesMax", 1000)
+    status = utilities_status(text, budget)
+    if status == "excluded":
+        cap = budget.get("withoutUtilitiesMax", 1000)
+    else:  # included or unknown -> generous cap
+        cap = budget.get("withUtilitiesMax", 1200)
     if cap is not None and price > cap:
-        tag = "utils incl" if included else "utils not stated/excl"
-        return False, f"price ${price} over ${cap} ({tag})"
+        return False, f"price ${price} over ${cap} (utils {status})"
     return True, None
 
 

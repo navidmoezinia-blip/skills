@@ -1,0 +1,68 @@
+{
+  "apifyToken": "",
+
+  "email": {
+    "enabled": false,
+    "to": "navidmoezinia@gmail.com",
+    "gmailUser": "",
+    "appPassword": ""
+  },
+
+  "stateFile": "data/seen-listings.json",
+  "onlyNewListings": true,
+
+  "criteria": {
+    "includeAny": ["in unit", "in-unit", "washer and dryer", "washer/dryer", "w/d in unit", "laundry in unit"],
+    "includeAll": [],
+    "excludeAny": ["carpet"],
+    "minPrice": null,
+    "maxPrice": 1200
+  },
+
+  "budget": {
+    "withUtilitiesMax": 1200,
+    "withoutUtilitiesMax": 1000,
+    "utilitiesIncludedPhrases": [
+      "utilities included", "utils included", "all bills paid",
+      "includes utilities", "water included", "electric included"
+    ]
+  },
+
+  "sources": [
+    {
+      "name": "Facebook Marketplace",
+      "type": "facebook",
+      "max": 5,
+      "requireKeywords": true,
+      "apify": {
+        "actorId": "REPLACE_WITH_FB_MARKETPLACE_ACTOR",
+        "input": {
+          "startUrls": [
+            { "url": "https://www.facebook.com/marketplace/galveston/propertyrentals?maxPrice=1200&sortBy=creation_time_descend&daysSinceListed=1" }
+          ],
+          "maxItems": 40
+        }
+      }
+    },
+    {
+      "name": "Apartments.com",
+      "type": "apartments",
+      "max": 2,
+      "requireKeywords": false,
+      "apify": {
+        "actorId": "REPLACE_WITH_APARTMENTS_ACTOR",
+        "input": { "location": "Galveston, TX", "maxPrice": 1200, "maxItems": 25 }
+      }
+    },
+    {
+      "name": "Zillow",
+      "type": "zillow",
+      "max": 2,
+      "requireKeywords": false,
+      "apify": {
+        "actorId": "REPLACE_WITH_ZILLOW_ACTOR",
+        "input": { "searchUrls": [ { "url": "https://www.zillow.com/galveston-tx/rentals/" } ], "maxItems": 25 }
+      }
+    }
+  ]
+}
