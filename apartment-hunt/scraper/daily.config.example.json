@@ -1,0 +1,52 @@
+{
+  "apifyToken": "",
+
+  "email": {
+    "enabled": false,
+    "to": "navidmoezinia@gmail.com",
+    "gmailUser": "",
+    "appPassword": ""
+  },
+
+  "stateFile": "data/seen-listings.json",
+  "onlyNewListings": true,
+
+  "criteria": {
+    "includeAny": ["in unit", "in-unit", "washer and dryer", "washer/dryer", "w/d in unit", "laundry in unit"],
+    "includeAll": [],
+    "excludeAny": ["carpet", "hookups", "hookup", "dryer connection", "washer connection"],
+    "minPrice": null,
+    "maxPrice": 1200
+  },
+
+  "budget": {
+    "withUtilitiesMax": 1200,
+    "withoutUtilitiesMax": 1000,
+    "utilitiesIncludedPhrases": ["utilities included", "utils included", "all bills paid", "includes utilities", "water included", "electric included"],
+    "utilitiesExcludedPhrases": ["tenant pays", "plus utilities", "+ utilities", "utilities not included", "excludes utilities"]
+  },
+
+  "_howSourcesArrive": "Each source can use ANY ONE of: 'file' (a JSON file your connector writes), 'url' (an endpoint returning JSON), or 'apify' (run an actor). Sources not yet wired just no-op, so a partial run still emails.",
+
+  "sources": [
+    {
+      "name": "Facebook Marketplace",
+      "type": "facebook",
+      "max": 5,
+      "requireKeywords": true,
+      "apify": {
+        "actorId": "apify/facebook-marketplace-scraper",
+        "_note": "Location MUST be set by lat/long; the city slug is ignored and returns the proxy's location. 29.3013,-94.7977 = Galveston.",
+        "input": {
+          "startUrls": [ { "url": "https://www.facebook.com/marketplace/category/propertyrentals?latitude=29.3013&longitude=-94.7977&radius=16&maxPrice=1200&sortBy=creation_time_descend" } ],
+          "resultsLimit": 40,
+          "includeListingDetails": true
+        }
+      }
+    },
+    { "name": "Apartments.com", "type": "apartments",    "max": 2, "requireKeywords": false, "file": "data/incoming/apartments.json" },
+    { "name": "Zillow",         "type": "zillow",        "max": 2, "requireKeywords": false, "file": "data/incoming/zillow.json" },
+    { "name": "Apartment List", "type": "apartmentlist", "max": 2, "requireKeywords": false, "file": "data/incoming/apartmentlist.json" },
+    { "name": "Trulia / HotPads", "type": "trulia",      "max": 2, "requireKeywords": false, "file": "data/incoming/trulia.json" }
+  ]
+}

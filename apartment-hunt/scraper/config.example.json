@@ -1,0 +1,54 @@
+{
+  "savedSearchUrl": "https://www.facebook.com/marketplace/your_saved_search_url_here",
+  "collectionName": "My Existing Collection",
+
+  "fbEmail": "",
+  "fbPassword": "",
+  "profileDir": "auth/browser-profile",
+  "headless": true,
+  "loginWaitSeconds": 180,
+
+  "maxListings": 30,
+  "maxScrolls": 8,
+  "briefMaxListings": 5,
+
+  "freshListingsOnly": true,
+  "freshListingHours": 24,
+  "onlyNewListings": true,
+  "stateFile": "data/seen-listings.json",
+
+  "criteria": {
+    "includeAny": [
+      "in unit",
+      "in-unit",
+      "washer and dryer",
+      "washer/dryer",
+      "w/d in unit",
+      "laundry in unit"
+    ],
+    "includeAll": [],
+    "excludeAny": ["carpet"],
+    "minPrice": null,
+    "maxPrice": 1200
+  },
+
+  "budget": {
+    "withUtilitiesMax": 1200,
+    "withoutUtilitiesMax": 1000,
+    "utilitiesIncludedPhrases": [
+      "utilities included",
+      "utils included",
+      "all bills paid",
+      "includes utilities",
+      "water included",
+      "electric included"
+    ]
+  },
+
+  "selectors": {
+    "listingLinks": "a[href*='/marketplace/item/']",
+    "saveButtonNames": ["Save", "Save listing"],
+    "savedButtonNames": ["Saved", "Saved listing"],
+    "doneButtonNames": ["Done", "Close"]
+  }
+}

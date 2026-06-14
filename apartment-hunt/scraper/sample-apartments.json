@@ -1,0 +1,6 @@
+[
+  {"id": "apt-1", "title": "1BR near UTMB", "rent": "$995", "address": "Galveston, TX", "detailUrl": "https://www.apartments.com/x-galveston-tx/1/", "description": "1 bed, in-unit washer/dryer, vinyl plank."},
+  {"id": "apt-2", "title": "Studio downtown", "rent": 1100, "address": "Galveston, TX", "detailUrl": "https://www.apartments.com/x-galveston-tx/2/", "description": "Studio, hardwood."},
+  {"id": "apt-3", "title": "2BR luxury", "rent": 1850, "address": "Galveston, TX", "detailUrl": "https://www.apartments.com/x-galveston-tx/3/", "description": "2 bed, pool, gym."},
+  {"id": "apt-4", "title": "Cozy 1BR", "rent": "$1,050", "address": "Texas City, TX", "detailUrl": "https://www.apartments.com/x-texascity-tx/4/", "description": "1 bed, w/d hookups."}
+]

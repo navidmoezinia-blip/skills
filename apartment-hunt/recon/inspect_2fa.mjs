@@ -1,0 +1,21 @@
+import { chromium } from 'playwright';
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const b = await chromium.launch({ headless: true });
+const ctx = await b.newContext({ ignoreHTTPSErrors: true, locale: 'en-US',
+  userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36' });
+const p = await ctx.newPage();
+await p.goto('https://www.facebook.com/login',{waitUntil:'domcontentloaded',timeout:30000});
+await sleep(1500);
+await p.fill('input[name="email"]', process.env.FB_USER);
+await sleep(500);
+await p.fill('input[name="pass"]', process.env.FB_PASS);
+await sleep(500);
+await p.press('input[name="pass"]','Enter');
+await sleep(7000);
+const url = p.url();
+const inputs = await p.$$eval('input', els=>els.map(e=>({name:e.getAttribute('name'),type:e.getAttribute('type'),id:e.id||null,ph:e.getAttribute('placeholder'),aria:e.getAttribute('aria-label')})));
+const buttons = await p.$$eval('button,[role="button"],input[type="submit"]', els=>els.slice(0,15).map(e=>({tag:e.tagName,aria:e.getAttribute('aria-label'),text:(e.innerText||e.value||'').trim().slice(0,40)})));
+const body = (await p.evaluate(()=>document.body?.innerText||'')).replace(/\s+/g,' ').slice(0,500);
+console.log(JSON.stringify({url,body,inputs,buttons},null,2));
+await p.screenshot({path:'twofa_page.png'});
+await b.close();
