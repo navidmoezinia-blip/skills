@@ -10,10 +10,18 @@ nothing to pip install.**
 
 1. **Install Python 3.11+** (python.org). No packages needed.
 
-2. **Apify** — make a free account, add the actors you want from the Apify Store
-   (search "Facebook Marketplace", "Apartments.com", "Zillow"), and copy your
-   **API token** (Settings → Integrations). Note each actor's ID (looks like
-   `username/actor-name`).
+2. **Apify** — make a free account and copy your **API token** (Settings →
+   Integrations). Facebook is already wired to the official
+   **`apify/facebook-marketplace-scraper`** actor (~$5 / 1,000 listings, free
+   $5/mo credits) with `includeListingDetails: true` so descriptions come
+   through. For the apartment sites, either feed them via your own connectors
+   (drop JSON in `data/incoming/<site>.json`) or add Apify actors and set their
+   IDs in `config.json`.
+
+   Test the Facebook scrape on its own anytime:
+   ```
+   python src/scrape_facebook.py      # calls Apify, prints a summary of each listing
+   ```
 
 3. **Config:**
    ```
@@ -47,6 +55,7 @@ nothing to pip install.**
 
 ## Files
 - `src/daily.py` — the orchestrator (fetch → filter → dedup → brief → email).
+- `src/scrape_facebook.py` — call the Apify FB Marketplace actor + preview each listing.
 - `src/filtering.py` — budget rule, negation-aware keyword matching, dedup state.
 - `src/sources.py` — per-site field mapping (confirm vs your actors).
 - `src/fetch_apify.py` — runs an Apify actor (stdlib `urllib`).

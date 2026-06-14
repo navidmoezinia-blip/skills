@@ -114,6 +114,52 @@ def budget_check(text: str, price: int | None, budget: dict | None) -> tuple[boo
 
 
 # --------------------------------------------------------------------------- #
+# Relevant-info extraction (for the per-listing summary)
+# --------------------------------------------------------------------------- #
+def extract_beds(text: str):
+    low = text.lower()
+    if re.search(r"\bstudio\b", low):
+        return 0
+    m = re.search(r"(\d+)\s*(?:bed|beds|br|bd|bedroom|bedrooms)\b", low)
+    return int(m.group(1)) if m else None
+
+
+def extract_sqft(text: str):
+    m = re.search(r"([0-9][0-9,]{1,6})\s*(?:sq\.?\s?ft|sqft|square\s?feet|sf)\b", text.lower())
+    return int(m.group(1).replace(",", "")) if m else None
+
+
+def has_in_unit_laundry(text: str) -> bool:
+    low = text.lower()
+    if contains_word(low, "in unit", allow_negated=False) or contains_word(low, "in-unit", allow_negated=False):
+        return True
+    return any(
+        contains_word(low, p, allow_negated=False)
+        for p in ("washer and dryer", "washer/dryer", "w/d in unit", "laundry in unit", "washer dryer")
+    )
+
+
+def carpet_state(text: str):
+    """True = no carpet, False = has carpet, None = not mentioned."""
+    low = text.lower()
+    if re.search(r"\bno\b[\s\-]*carpet|carpet[\s\-]*free", low):
+        return True
+    if contains_word(low, "carpet", allow_negated=False):
+        return False
+    return None
+
+
+def feature_summary(text: str, budget: dict | None) -> dict:
+    return {
+        "beds": extract_beds(text),
+        "sqft": extract_sqft(text),
+        "inUnitLaundry": has_in_unit_laundry(text),
+        "carpet": carpet_state(text),
+        "utilities": utilities_status(text, budget),
+    }
+
+
+# --------------------------------------------------------------------------- #
 # State / dedup
 # --------------------------------------------------------------------------- #
 def listing_id_from_url(url: str) -> str | None:

@@ -19,13 +19,13 @@ from pathlib import Path
 
 from filtering import (
     budget_check,
+    feature_summary,
     listing_id_from_url,
     load_state,
     matches_criteria,
     prior_price,
     remember_seen,
     save_state,
-    utilities_included,
 )
 from sources import normalize_record
 
@@ -82,7 +82,14 @@ def main() -> int:
                 continue
 
             listing["isNew"] = True
-            listing["utilitiesIncluded"] = utilities_included(text, config.get("budget"))
+            feats = feature_summary(text, config.get("budget"))
+            listing["utilStatus"] = feats["utilities"]
+            listing["laundry"] = feats["inUnitLaundry"]
+            listing["carpet"] = feats["carpet"]
+            if listing.get("beds") is None:
+                listing["beds"] = feats["beds"]
+            if listing.get("sqft") is None:
+                listing["sqft"] = feats["sqft"]
             matched.append(listing)
             remember_seen(state, key, listing)
 
@@ -204,27 +211,52 @@ def render(sections, price_drops, summary, errors) -> tuple[str, str]:
     return "\n".join(md).rstrip() + "\n", "\n".join(html)
 
 
-def card_md(i, m) -> str:
+def summary_bits(m) -> list[str]:
+    """Quick, relevant per-listing facts."""
     bits = [money(m.get("price"))]
-    if m.get("utilitiesIncluded"):
+    util = m.get("utilStatus")
+    if util == "included":
         bits.append("utils incl")
+    elif util == "excluded":
+        bits.append("utils extra")
+    beds = m.get("beds")
+    if beds == 0:
+        bits.append("studio")
+    elif isinstance(beds, int):
+        bits.append(f"{beds}bd")
+    if m.get("sqft"):
+        bits.append(f"~{m['sqft']} sqft")
+    if m.get("laundry"):
+        bits.append("in-unit W/D")
+    if m.get("carpet") is True:
+        bits.append("no carpet")
     if m.get("location"):
         bits.append(m["location"])
-    return f"{i}. [{m['title']}]({m['url']})\n   " + " · ".join(b for b in bits if b)
+    return [b for b in bits if b]
+
+
+def snippet_of(m, limit: int = 160) -> str:
+    desc = (m.get("description") or "").strip()
+    return (desc[: limit - 1] + "…") if len(desc) > limit else desc
+
+
+def card_md(i, m) -> str:
+    out = f"{i}. [{m['title']}]({m['url']})\n   " + " · ".join(summary_bits(m))
+    snip = snippet_of(m)
+    if snip:
+        out += f"\n   _{snip}_"
+    return out
 
 
 def card_html(m) -> str:
-    bits = [money(m.get("price"))]
-    if m.get("utilitiesIncluded"):
-        bits.append("utils incl")
-    if m.get("location"):
-        bits.append(esc(m["location"]))
-    sub = " · ".join(b for b in bits if b)
+    sub = " · ".join(esc(b) for b in summary_bits(m))
+    snip = snippet_of(m)
+    snip_html = f"<div style=\"color:#777;margin-top:4px;font-size:13px\">{esc(snip)}</div>" if snip else ""
     img = f"<img src=\"{esc(m['image'])}\" width=\"120\" style=\"border-radius:6px;float:left;margin:0 10px 8px 0\">" if m.get("image") else ""
     return (
         "<div style=\"border:1px solid #e2e2e2;border-radius:8px;padding:10px;margin:8px 0;overflow:hidden\">"
         f"{img}<a href=\"{esc(m['url'])}\" style=\"font-weight:600;font-size:15px\">{esc(m['title'])}</a>"
-        f"<div style=\"color:#444;margin-top:4px\">{sub}</div></div>"
+        f"<div style=\"color:#444;margin-top:4px\">{sub}</div>{snip_html}</div>"
     )
 
 

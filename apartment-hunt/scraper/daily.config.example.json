@@ -34,10 +34,13 @@
       "type": "facebook",
       "max": 5,
       "requireKeywords": true,
-      "file": "data/incoming/facebook.json",
       "apify": {
-        "actorId": "REPLACE_WITH_FB_ACTOR_OR_USE_FILE",
-        "input": { "startUrls": [ { "url": "https://www.facebook.com/marketplace/galveston/propertyrentals?maxPrice=1200&sortBy=creation_time_descend&daysSinceListed=1" } ], "maxItems": 40 }
+        "actorId": "apify/facebook-marketplace-scraper",
+        "input": {
+          "startUrls": [ { "url": "https://www.facebook.com/marketplace/galveston/propertyrentals" } ],
+          "resultsLimit": 40,
+          "includeListingDetails": true
+        }
       }
     },
     { "name": "Apartments.com", "type": "apartments",    "max": 2, "requireKeywords": false, "file": "data/incoming/apartments.json" },

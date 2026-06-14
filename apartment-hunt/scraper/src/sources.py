@@ -8,7 +8,9 @@ Field names differ per Apify actor / site, so each normalizer tries the common
 names with fallbacks. Confirm against your chosen actors' real output.
 """
 
-from filtering import first_price, listing_id_from_url
+import re
+
+from filtering import extract_beds, extract_sqft, first_price, listing_id_from_url
 from filtering import normalize as clean_text
 
 
@@ -25,8 +27,10 @@ def parse_price(value) -> int | None:
     if isinstance(value, (int, float)):
         return int(value)
     if isinstance(value, dict):
-        return parse_price(pick(value, "amount", "value", "price"))
-    return first_price(str(value))
+        return parse_price(pick(value, "amount", "value", "price", "formatted_amount"))
+    # Plain number ("1150"), "$1,150", "1150/mo" — grab the first integer.
+    m = re.search(r"([0-9][0-9,]*)", str(value))
+    return int(m.group(1).replace(",", "")) if m else None
 
 
 def parse_location(value) -> str:
@@ -35,10 +39,36 @@ def parse_location(value) -> str:
     if isinstance(value, str):
         return value
     if isinstance(value, dict):
-        city = pick(value, "city", "displayName", "name", "text", "addressLocality")
+        # FB often nests: location.reverse_geocode.city_page.display_name
+        rg = value.get("reverse_geocode") or value.get("reverse_geocode_detailed") or {}
+        if isinstance(rg, dict):
+            disp = pick(rg.get("city_page", {}) if isinstance(rg.get("city_page"), dict) else {}, "display_name")
+            if disp:
+                return str(disp)
+            city = pick(rg, "city", "name")
+            st = pick(rg, "state", "state_code")
+            if city or st:
+                return ", ".join(p for p in (str(city) if city else "", str(st) if st else "") if p)
+        city = pick(value, "city", "displayName", "display_name", "name", "text", "addressLocality")
         st = pick(value, "state", "stateCode", "region", "addressRegion")
         return ", ".join(p for p in (str(city) if city else "", str(st) if st else "") if p)
     return str(value)
+
+
+def parse_text_field(value) -> str:
+    """FB description often arrives as {'text': '...'}."""
+    if isinstance(value, dict):
+        return str(pick(value, "text", "plaintext", "value") or "")
+    return str(value or "")
+
+
+def parse_photo(value) -> str | None:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        img = value.get("image") if isinstance(value.get("image"), dict) else None
+        return pick(img or value, "uri", "url", "src")
+    return None
 
 
 def _base(record: dict, source: str, url: str) -> dict:
@@ -59,12 +89,24 @@ def _base(record: dict, source: str, url: str) -> dict:
 
 
 def normalize_facebook(record: dict) -> dict:
-    url = pick(record, "url", "listingUrl", "facebookUrl", "link") or ""
+    """Maps the official apify/facebook-marketplace-scraper output (with
+    includeListingDetails enabled). Falls back to other field names too."""
+    url = pick(record, "listingUrl", "url", "facebookUrl", "link") or ""
     out = _base(record, "facebook", url)
     out["id"] = str(pick(record, "id", "listingId", "facebookId", "itemId") or listing_id_from_url(url) or "")
-    out["price"] = parse_price(pick(record, "price", "listingPrice", "amount", "formattedPrice"))
+    out["title"] = clean_text(pick(record, "marketplace_listing_title", "title", "name")) or "Marketplace listing"
+    out["price"] = parse_price(pick(record, "listing_price", "price", "listingPrice", "amount", "formattedPrice"))
+    out["location"] = clean_text(parse_location(pick(record, "location", "address", "city", "place")))
+    out["image"] = parse_photo(pick(record, "primary_listing_photo", "image", "imageUrl", "primaryImage", "photo")) or out["image"]
+    out["description"] = clean_text(
+        parse_text_field(pick(record, "redacted_description", "description", "redactedDescription", "body"))
+    )
     if out["price"] is None:
         out["price"] = first_price(out["title"]) or first_price(out["description"])
+
+    text = f"{out['title']} {out['description']}"
+    out["beds"] = out["beds"] if out["beds"] is not None else extract_beds(text)
+    out["sqft"] = out["sqft"] if out["sqft"] is not None else extract_sqft(text)
     return out
 
 
